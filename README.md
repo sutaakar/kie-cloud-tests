@@ -87,3 +87,4 @@ Create application secrets.
 Create image streams in your project. Replace "Image stream URL" with URL or file path to a file containing image streams.
 6. ```oc process -n my-project -f https://raw.githubusercontent.com/jboss-openshift/application-templates/bpmsuite-wip/bpmsuite/bpmsuite70-full-mysql-persistent.json -v IMAGE_STREAM_NAMESPACE=my-project -v KIE_ADMIN_USER=adminUser -v KIE_ADMIN_PWD=admin1! -v KIE_SERVER_CONTROLLER_USER=controllerUser -v KIE_SERVER_CONTROLLER_PWD=controller1! -v KIE_SERVER_USER=executionUser -v KIE_SERVER_PWD=execution1! | oc create -n my-project -f -```
 Process the template, replacing parameters with specific values, and create all resources defined there in OpenShift project.
+
