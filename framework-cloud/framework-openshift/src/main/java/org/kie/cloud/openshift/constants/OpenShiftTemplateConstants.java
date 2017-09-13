@@ -26,10 +26,17 @@ public class OpenShiftTemplateConstants {
     public static final String KIE_SERVER_PERSISTENCE_DS = "KIE_SERVER_PERSISTENCE_DS";
     public static final String KIE_SERVER_PERSISTENCE_TM = "KIE_SERVER_PERSISTENCE_TM";
 
+    public static final String KIE_SERVER_ID = "KIE_SERVER_ID";
     public static final String KIE_SERVER_HOST = "KIE_SERVER_HOST";
     public static final String KIE_SERVER_PORT = "KIE_SERVER_PORT";
+
     public static final String KIE_SERVER_CONTROLLER_HOST = "KIE_SERVER_CONTROLLER_HOST";
     public static final String KIE_SERVER_CONTROLLER_PORT = "KIE_SERVER_CONTROLLER_PORT";
+
+    public static final String KIE_ROUTER_ID = "KIE_ROUTER_ID";
+    public static final String KIE_ROUTER_CONTROLLER_URL = "KIE_ROUTER_CONTROLLER_URL";
+    public static final String KIE_ROUTER_CONTROLLER_USER = "KIE_ROUTER_CONTROLLER_USER";
+    public static final String KIE_ROUTER_CONTROLLER_PASSWORD = "KIE_ROUTER_CONTROLLER_PASSWORD";
 
     public static final String KIE_SERVER_BYPASS_AUTH_USER = "KIE_SERVER_BYPASS_AUTH_USER";
 

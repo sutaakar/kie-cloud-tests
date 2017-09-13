@@ -15,6 +15,7 @@
 
 package org.kie.cloud.common.provider;
 
+import java.net.URL;
 import java.time.Instant;
 
 import org.kie.cloud.api.deployment.KieServerDeployment;
@@ -33,6 +34,10 @@ public class KieServerClientProvider {
     private static final long KIE_SERVER_TIMEOUT = 300_000L;
 
     public static KieServicesClient getKieServerClient(KieServerDeployment kieServerDeployment) {
+        return getKieServerClient(kieServerDeployment.getUrl(), kieServerDeployment);
+    }
+
+    public static KieServicesClient getKieServerClient(URL kieServerUrl, KieServerDeployment kieServerDeployment) {
         KieServicesConfiguration configuration = KieServicesFactory.newRestConfiguration(kieServerDeployment.getUrl().toString() + "/services/rest/server",
                 kieServerDeployment.getUsername(), kieServerDeployment.getPassword(), KIE_SERVER_TIMEOUT);
         KieServicesClient kieServerClient = KieServicesFactory.newKieServicesClient(configuration);

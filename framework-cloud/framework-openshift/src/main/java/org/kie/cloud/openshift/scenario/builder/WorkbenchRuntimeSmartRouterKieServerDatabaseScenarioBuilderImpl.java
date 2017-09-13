@@ -48,4 +48,24 @@ public class WorkbenchRuntimeSmartRouterKieServerDatabaseScenarioBuilderImpl imp
     public WorkbenchRuntimeSmartRouterKieServerDatabaseScenario build() {
         return new WorkbenchRuntimeSmartRouterKieServerDatabaseScenarioImpl(openshiftController, envVariables);
     }
+
+    @Override
+    public WorkbenchRuntimeSmartRouterKieServerDatabaseScenarioBuilder withExternalMavenRepo(String repoUrl, String repoUserName, String repoPassword) {
+        envVariables.put(OpenShiftTemplateConstants.MAVEN_REPO_URL, repoUrl);
+        envVariables.put(OpenShiftTemplateConstants.MAVEN_REPO_USERNAME, repoUserName);
+        envVariables.put(OpenShiftTemplateConstants.MAVEN_REPO_PASSWORD, repoPassword);
+        return this;
+    }
+
+    @Override
+    public WorkbenchRuntimeSmartRouterKieServerDatabaseScenarioBuilder withKieServerId(String kieServerId) {
+        envVariables.put(OpenShiftTemplateConstants.KIE_SERVER_ID, kieServerId);
+        return this;
+    }
+
+    @Override
+    public WorkbenchRuntimeSmartRouterKieServerDatabaseScenarioBuilder withSmartRouterId(String smartRouterId) {
+        envVariables.put(OpenShiftTemplateConstants.KIE_ROUTER_ID, smartRouterId);
+        return this;
+    }
 }
