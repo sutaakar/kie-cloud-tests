@@ -15,20 +15,20 @@
 
 package org.kie.cloud.openshift.database.driver;
 
-public class Db2ExternalDriver extends AbstractExternalDriver {
+public class MySqlExternalDriver extends AbstractExternalDriver {
 
     @Override
     public String getImageName() {
-        return "db2-driver-image";
+        return "mysql-driver-image";
     }
 
     @Override
     public String getImageVersion() {
-        return "10.5";
+        return "5.7";
     }
 
     @Override
     protected String getOverrideFileName() {
-        return "db2-overrides.yaml";
+        return "mysql-overrides.yaml";
     }
 }

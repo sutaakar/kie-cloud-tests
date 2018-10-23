@@ -28,22 +28,7 @@ public class MariaDbExternalDriver extends AbstractExternalDriver {
     }
 
     @Override
-    public String getDockerFileRelativePath() {
-        return "mariadb-driver-image";
-    }
-
-    @Override
-    public String getCustomInstallDirectories() {
-        return "mariadb-driver/extensions";
-    }
-
-    @Override
-    public String getSourceImagePath() {
-        return "/extensions:mariadb-driver/";
-    }
-
-    @Override
-    protected String getDriverBinaryFileLocationInArtifactRepo() {
-        return "org/mariadb/jdbc/mariadb-java-client/2.2.5/mariadb-java-client-2.2.5.jar";
+    protected String getOverrideFileName() {
+        return "mariadb-overrides.yaml";
     }
 }

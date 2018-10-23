@@ -28,22 +28,7 @@ public class MssqlExternalDriver extends AbstractExternalDriver {
     }
 
     @Override
-    public String getDockerFileRelativePath() {
-        return "mssql-driver-image";
-    }
-
-    @Override
-    public String getCustomInstallDirectories() {
-        return "mssql-driver/extensions";
-    }
-
-    @Override
-    public String getSourceImagePath() {
-        return "/extensions:mssql-driver/";
-    }
-
-    @Override
-    protected String getDriverBinaryFileLocationInArtifactRepo() {
-        return "com/microsoft/sqlserver/sqljdbc4/4.0/sqljdbc4-4.0.jar";
+    protected String getOverrideFileName() {
+        return "mssql-overrides.yaml";
     }
 }

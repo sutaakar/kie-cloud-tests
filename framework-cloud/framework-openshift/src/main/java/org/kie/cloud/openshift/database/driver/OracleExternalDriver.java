@@ -28,22 +28,7 @@ public class OracleExternalDriver extends AbstractExternalDriver {
     }
 
     @Override
-    public String getDockerFileRelativePath() {
-        return "oracle-driver-image";
-    }
-
-    @Override
-    public String getCustomInstallDirectories() {
-        return "oracle-driver/extensions";
-    }
-
-    @Override
-    public String getSourceImagePath() {
-        return "/extensions:oracle-driver/";
-    }
-
-    @Override
-    protected String getDriverBinaryFileLocationInArtifactRepo() {
-        return "com/oracle/ojdbc7/12.1.0.1/ojdbc7-12.1.0.1.jar";
+    protected String getOverrideFileName() {
+        return "oracle-overrides.yaml";
     }
 }

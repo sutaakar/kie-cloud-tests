@@ -34,35 +34,23 @@ public interface ExternalDriver {
     String getImageVersion();
 
     /**
-     * @return Driver Docker file path relative to base script folder.
-     */
-    String getDockerFileRelativePath();
-
-    /**
-     * @return Install directories for OpenShift build producing Kie server with custom driver.
-     */
-    String getCustomInstallDirectories();
-
-    /**
-     * @return Specify the file or directory to copy from the source image and its destination in the build directory. Format: [source]:[destination-dir].
-     */
-    String getSourceImagePath();
-
-    /**
-     * @param dockerUrl URL to Docker registry.
      * @return Docker tag.
      */
-    String getDockerTag(URL dockerUrl);
+    String getDockerTag();
 
     /**
-     * @param kieJdbcDriverScriptsFolder Folder containing all driver scripts.
-     * @param dockerUrl URL to Docker registry.
-     * @return Docker command to build driver image.
+     * @param registryUrl URL to Docker registry.
+     * @return Docker tag with registry url.
      */
-    String getDockerImageBuildCommand(File kieJdbcDriverScriptsFolder, URL dockerUrl);
+    String getDockerTag(URL registryUrl);
 
     /**
-     * @return Location where driver binary file should be downloaded to.
+     * @return Location where overrides file can be found.
      */
-    File getDriverBinaryFileLocation();
+    File getOverridesFileLocation();
+
+    /**
+     * @return Location where image.yaml file of external driver can be found.
+     */
+    File getImageDescriptorFileLocation();
 }

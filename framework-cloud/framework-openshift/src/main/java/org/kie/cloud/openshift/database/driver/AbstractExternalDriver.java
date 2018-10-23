@@ -22,7 +22,10 @@ import org.kie.cloud.openshift.constants.OpenShiftConstants;
 
 public abstract class AbstractExternalDriver implements ExternalDriver {
 
-    private static final String ARTIFACT_MVN_REPO_RELATIVE_PATH = "drivers";
+    @Override
+    public String getDockerTag() {
+        return getImageName() + ":" + getImageVersion();
+    }
 
     @Override
     public String getDockerTag(URL dockerUrl) {
@@ -30,30 +33,19 @@ public abstract class AbstractExternalDriver implements ExternalDriver {
     }
 
     @Override
-    public String getDockerImageBuildCommand(File kieJdbcDriverScriptsFolder, URL dockerUrl) {
-        if (!kieJdbcDriverScriptsFolder.exists()) {
-            throw new RuntimeException("JDBC driver script folder " + kieJdbcDriverScriptsFolder.getAbsolutePath() + " doesn't exist.");
-        }
-
-        File kieJdbcDriverDockerDir = new File(kieJdbcDriverScriptsFolder, getDockerFileRelativePath());
-        File kieJdbcDriverDockerFile = new File(kieJdbcDriverDockerDir, "Dockerfile");
-        if (!kieJdbcDriverDockerFile.exists()) {
-            throw new RuntimeException("JDBC driver Dockerfile " + kieJdbcDriverDockerFile.getAbsolutePath() + " doesn't exist.");
-        }
-
-        return "docker build -f " + kieJdbcDriverDockerFile.getAbsolutePath() + " --build-arg ARTIFACT_MVN_REPO=" + ARTIFACT_MVN_REPO_RELATIVE_PATH + " -t " + getDockerTag(dockerUrl) + " " + kieJdbcDriverScriptsFolder.getAbsolutePath();
+    public File getOverridesFileLocation() {
+        File kieJdbcDriverScriptsFolder = OpenShiftConstants.getKieJdbcDriverScriptsFolder();
+        return new File(kieJdbcDriverScriptsFolder, getOverrideFileName());
     }
 
     @Override
-    public File getDriverBinaryFileLocation() {
+    public File getImageDescriptorFileLocation() {
         File kieJdbcDriverScriptsFolder = OpenShiftConstants.getKieJdbcDriverScriptsFolder();
-        return new File(kieJdbcDriverScriptsFolder, ARTIFACT_MVN_REPO_RELATIVE_PATH + "/" + getDriverBinaryFileLocationInArtifactRepo());
+        return new File(kieJdbcDriverScriptsFolder, "image.yaml");
     }
 
     /**
-     * Values returned by this method have to be same as binary file locations defined in driver scripts! 
-     *
-     * @return Path to the driver binary file in "artifact repo" placed within driver scripts folder.
+     * @return File name of override file containing specific driver properties.
      */
-    protected abstract String getDriverBinaryFileLocationInArtifactRepo();
+    protected abstract String getOverrideFileName();
 }

@@ -16,21 +16,26 @@
 package org.kie.cloud.openshift.scenario;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import cz.xtf.openshift.OpenShiftBinaryClient;
-import cz.xtf.wait.SimpleWaiter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.kie.cloud.api.deployment.ControllerDeployment;
 import org.kie.cloud.api.deployment.Deployment;
 import org.kie.cloud.api.deployment.DockerDeployment;
@@ -47,7 +52,6 @@ import org.kie.cloud.openshift.database.external.TemplateExternalDatabaseProvide
 import org.kie.cloud.openshift.deployment.KieServerDeploymentImpl;
 import org.kie.cloud.openshift.template.OpenShiftTemplate;
 import org.kie.cloud.openshift.util.DockerRegistryDeployer;
-import org.kie.cloud.openshift.util.OpenShiftTemplateProcessor;
 import org.kie.cloud.openshift.util.ProcessExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,23 +80,22 @@ public class KieServerWithExternalDatabaseScenarioImpl extends OpenShiftScenario
 
         externalDatabase.getExternalDriver().ifPresent(val -> {
             ExternalDriver externalDriver = externalDatabase.getExternalDriver().get();
-            String kieServerCustomImageStreamName = "kieserver-openshift-with-custom-driver";
 
             dockerDeployment = DockerRegistryDeployer.deploy(project);
 
             URL driverBinaryUrl = OpenShiftConstants.getKieJdbcDriverBinaryUrl();
-            File driverBinaryFileLocation = externalDriver.getDriverBinaryFileLocation();
-            downloadDriverBinary(driverBinaryUrl, driverBinaryFileLocation);
 
-            installDriverImageToRegistry(dockerDeployment, externalDriver);
+            File overrideFile = copyOverridesFileToTempLocation(externalDriver);
+            adjustOverridesFileValues(overrideFile, externalDriver, driverBinaryUrl);
+            installDriverImageToRegistry(dockerDeployment, externalDriver, overrideFile);
             createDriverImageStreams(dockerDeployment, externalDriver);
-            buildCustomKieServerImageStream(externalDriver, kieServerCustomImageStreamName);
 
-            envVariables.put(OpenShiftTemplateConstants.KIE_SERVER_IMAGE_STREAM_NAME, kieServerCustomImageStreamName);
+            envVariables.put(OpenShiftTemplateConstants.EXTENSIONS_IMAGE, externalDriver.getDockerTag());
         });
 
         logger.info("Processing template and creating resources from " + OpenShiftTemplate.KIE_SERVER_DATABASE_EXTERNAL.getTemplateUrl().toString());
         envVariables.put(OpenShiftTemplateConstants.IMAGE_STREAM_NAMESPACE, project.getName());
+        envVariables.put(OpenShiftTemplateConstants.EXTENSIONS_IMAGE_NAMESPACE, project.getName());
         project.processTemplateAndCreateResources(OpenShiftTemplate.KIE_SERVER_DATABASE_EXTERNAL.getTemplateUrl(), envVariables);
 
         kieServerDeployment = new KieServerDeploymentImpl(project);
@@ -131,32 +134,77 @@ public class KieServerWithExternalDatabaseScenarioImpl extends OpenShiftScenario
         return Collections.emptyList();
     }
 
-    private void downloadDriverBinary(URL driverBinaryUrl, File driverBinaryFileLocation) {
-        logger.info("Downloading JDBC driver from " + driverBinaryUrl.toString() + " to " + driverBinaryFileLocation.getAbsolutePath());
-        driverBinaryFileLocation.getParentFile().mkdirs();
-        if (driverBinaryFileLocation.exists()) {
-            driverBinaryFileLocation.delete();
-        }
-
-        try (ReadableByteChannel rbc = Channels.newChannel(driverBinaryUrl.openStream());
-             FileOutputStream fos = new FileOutputStream(driverBinaryFileLocation);) {
-            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+    private File copyOverridesFileToTempLocation(ExternalDriver externalDriver) {
+        try {
+            File tempOverridesFile = File.createTempFile("overrides", ".yaml");
+            Files.copy(externalDriver.getOverridesFileLocation().toPath(), tempOverridesFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            return tempOverridesFile;
         } catch (IOException e) {
-            throw new RuntimeException("Error while downloading driver binary.", e);
+            throw new RuntimeException("Error copying overrides file.", e);
         }
     }
 
-    private void installDriverImageToRegistry(DockerDeployment dockerDeployment, ExternalDriver externalDriver) {
-        File kieJdbcDriverScriptsFolder = OpenShiftConstants.getKieJdbcDriverScriptsFolder();
-        String dockerImageBuildCommand = externalDriver.getDockerImageBuildCommand(kieJdbcDriverScriptsFolder, dockerDeployment.getUrl());
-        String dockerTag = externalDriver.getDockerTag(dockerDeployment.getUrl());
+    private void adjustOverridesFileValues(File overridesFile, ExternalDriver externalDriver, URL driverBinaryUrl) {
+        String binaryJarFileName = getBinaryJarFileName(driverBinaryUrl);
+        String md5 = computeMd5(driverBinaryUrl);
+
+        try {
+            ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+            ObjectNode yamlTree = (ObjectNode) yamlMapper.readTree(overridesFile);
+
+            yamlTree.put("name", externalDriver.getImageName());
+            yamlTree.put("version", externalDriver.getImageVersion());
+
+            ArrayNode artifacts = (ArrayNode) yamlTree.get("artifacts");
+            for (JsonNode artifact : artifacts) {
+                ((ObjectNode)artifact).put("url", driverBinaryUrl.toExternalForm());
+                ((ObjectNode)artifact).put("md5", md5);
+            }
+
+            ArrayNode envs = (ArrayNode) yamlTree.get("envs");
+            for (JsonNode env : envs) {
+                if (((ObjectNode) env).get("name").equals(TextNode.valueOf("JDBC_ARTIFACT"))) {
+                    ((ObjectNode) env).put("value", binaryJarFileName);
+                }
+            }
+
+            String newContent = yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(yamlTree);
+            Files.write(overridesFile.toPath(), newContent.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new RuntimeException("Error while replacing URL.", e);
+        }
+    }
+
+    private String computeMd5(URL driverBinaryUrl) {
+        try (InputStream is = driverBinaryUrl.openStream()) {
+            return org.apache.commons.codec.digest.DigestUtils.md5Hex(is);
+        } catch (IOException e) {
+            throw new RuntimeException("Error while calculating MD5 digest.", e);
+        }
+    }
+
+    private String getBinaryJarFileName(URL driverBinaryUrl) {
+        Pattern binaryJarFilePattern = Pattern.compile(".*/([a-zA-Z0-9\\.-]*)");
+
+        Matcher matcher = binaryJarFilePattern.matcher(driverBinaryUrl.toExternalForm());
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+
+        throw new RuntimeException("Failed to find binary jar file name from URL '" + driverBinaryUrl.toExternalForm() + "'.");
+    }
+
+    private void installDriverImageToRegistry(DockerDeployment dockerDeployment, ExternalDriver externalDriver, File overridesFile) {
+        String dockerTag = externalDriver.getDockerTag();
+        String dockerTagWithRegistry = externalDriver.getDockerTag(dockerDeployment.getUrl());
 
         try (ProcessExecutor processExecutor = new ProcessExecutor()) {
             logger.info("Building JDBC driver image.");
-            processExecutor.executeProcessCommand(dockerImageBuildCommand);
+            processExecutor.executeProcessCommand("cekit build --overrides " + overridesFile.getAbsolutePath() + " --descriptor " + externalDriver.getImageDescriptorFileLocation().getAbsolutePath());
 
             logger.info("Pushing JDBC driver image to Docker registry.");
-            processExecutor.executeProcessCommand("docker push " + dockerTag);
+            processExecutor.executeProcessCommand("docker tag " + dockerTag + " " + dockerTagWithRegistry);
+            processExecutor.executeProcessCommand("docker push " + dockerTagWithRegistry);
         }
     }
 
@@ -165,29 +213,5 @@ public class KieServerWithExternalDatabaseScenarioImpl extends OpenShiftScenario
         String dockerTag = externalDriver.getDockerTag(dockerDeployment.getUrl());
 
         project.createImageStream(imageStreamName, dockerTag);
-    }
-
-    private void buildCustomKieServerImageStream(ExternalDriver externalDriver, String kieServerCustomImageStreamName) {
-        logger.info("Build Kie server custom image with JDBC driver included.");
-        String buildName = externalDriver.getImageName();
-        String kieServerImageStreamName = OpenShiftTemplateProcessor.getParameterValue(OpenShiftTemplate.KIE_SERVER_DATABASE_EXTERNAL, OpenShiftTemplateConstants.KIE_SERVER_IMAGE_STREAM_NAME);
-        String kieServerImageStreamTag = OpenShiftTemplateProcessor.getParameterValue(OpenShiftTemplate.KIE_SERVER_DATABASE_EXTERNAL, OpenShiftTemplateConstants.IMAGE_STREAM_TAG);
-        String originalKieServerImageStream = project.getName() + "/" + kieServerImageStreamName + ":" + kieServerImageStreamTag;
-        String jdbcSourceImage = project.getName() + "/" + externalDriver.getImageName() + ":" + externalDriver.getImageVersion();
-        String targetKieServerImageStream = kieServerCustomImageStreamName + ":" + kieServerImageStreamTag;
-
-        OpenShiftBinaryClient.getInstance().project(project.getName());
-        OpenShiftBinaryClient.getInstance().executeCommand("Custom Kie server image build failed.", "new-build", "--name", buildName, "--image-stream=" + originalKieServerImageStream, "--source-image=" + jdbcSourceImage, "--source-image-path=" + externalDriver.getSourceImagePath(), "--to=" + targetKieServerImageStream, "-e", "CUSTOM_INSTALL_DIRECTORIES=" + externalDriver.getCustomInstallDirectories());
-
-        waitUntilBuildCompletes(buildName);
-    }
-
-    private void waitUntilBuildCompletes(String buildName) {
-        try {
-            new SimpleWaiter(() -> project.getOpenShiftUtil().getLatestBuild(buildName) != null).timeout(TimeUnit.MINUTES, 1).execute();
-            project.getOpenShiftUtil().waiters().hasBuildCompleted(project.getOpenShiftUtil().getLatestBuild(buildName).getMetadata().getName()).execute();
-        } catch (TimeoutException e) {
-            throw new RuntimeException("Error while waiting for the custom Kie server build to finish.", e);
-        }
     }
 }
