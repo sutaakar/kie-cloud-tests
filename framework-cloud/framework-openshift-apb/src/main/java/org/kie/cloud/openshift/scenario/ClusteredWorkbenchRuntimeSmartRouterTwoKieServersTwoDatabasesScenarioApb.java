@@ -43,7 +43,7 @@ import org.kie.cloud.openshift.util.SsoDeployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClusteredWorkbenchRuntimeSmartRouterTwoKieServersTwoDatabasesScenarioApb extends OpenShiftScenario implements ClusteredWorkbenchRuntimeSmartRouterTwoKieServersTwoDatabasesScenario {
+public class ClusteredWorkbenchRuntimeSmartRouterTwoKieServersTwoDatabasesScenarioApb extends OpenShiftScenario<ClusteredWorkbenchRuntimeSmartRouterTwoKieServersTwoDatabasesScenario> implements ClusteredWorkbenchRuntimeSmartRouterTwoKieServersTwoDatabasesScenario {
 
     private WorkbenchDeployment workbenchRuntimeDeployment;
     private SmartRouterDeployment smartRouterDeployment;

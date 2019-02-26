@@ -38,7 +38,7 @@ import org.kie.cloud.openshift.operator.resources.OpenShiftResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WorkbenchKieServerScenarioImpl extends OpenShiftOperatorScenario implements WorkbenchKieServerScenario {
+public class WorkbenchKieServerScenarioImpl extends OpenShiftOperatorScenario<WorkbenchKieServerScenario> implements WorkbenchKieServerScenario {
 
     private WorkbenchDeploymentImpl workbenchDeployment;
     private KieServerDeploymentImpl kieServerDeployment;

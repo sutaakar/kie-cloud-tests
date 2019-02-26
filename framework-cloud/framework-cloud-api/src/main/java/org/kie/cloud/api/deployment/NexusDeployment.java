@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 JBoss by Red Hat.
+ * Copyright 2019 JBoss by Red Hat.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.kie.cloud.api.scenario;
+package org.kie.cloud.api.deployment;
+
+import java.net.URL;
 
 /**
- * Cloud generic deployment scenario representation.
+ * Nexus Maven repo deployment representation in cloud.
  */
-public interface GenericScenario extends KieDeploymentScenario<GenericScenario> {
+public interface NexusDeployment extends Deployment {
 
+    /**
+     * Get snapshot repo URL for Nexus Maven repo service (deployment).
+     *
+     * @return Nexus Maven repo URL
+     */
+    URL getSnapshotRepoUrl();
+
+    /**
+     * Get released repo URL for Nexus Maven repo service (deployment).
+     *
+     * @return Nexus Maven repo URL
+     */
+    URL getReleasedRepoUrl();
 }

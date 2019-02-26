@@ -44,7 +44,7 @@ import org.kie.cloud.openshift.util.SsoDeployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GenericScenarioImpl extends OpenShiftScenario implements GenericScenario {
+public class GenericScenarioImpl extends OpenShiftScenario<GenericScenario> implements GenericScenario {
 
     private List<WorkbenchDeployment> workbenchDeployments;
     private List<KieServerDeployment> kieServerDeployments;

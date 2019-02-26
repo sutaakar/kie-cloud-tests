@@ -15,15 +15,15 @@
 
 package org.kie.cloud.maven;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import cz.xtf.maven.MavenUtil;
 import org.apache.maven.it.VerificationException;
 import org.kie.cloud.api.constants.ConfigurationInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import cz.xtf.maven.MavenUtil;
 
 public class MavenDeployer {
 
@@ -41,7 +41,7 @@ public class MavenDeployer {
      * @param basedir Directory to build a project from.
      */
     public static void buildAndInstallMavenProject(String basedir) {
-        buildMavenProject(basedir, "install");
+        buildMavenProject(basedir, "install", null);
     }
 
     /**
@@ -50,7 +50,17 @@ public class MavenDeployer {
      * @param basedir Directory to build a project from.
      */
     public static void buildAndDeployMavenProject(String basedir) {
-        buildMavenProject(basedir, "deploy");
+        buildMavenProject(basedir, "deploy", null);
+    }
+
+    /**
+     * Build Maven project from specified directory using maven command "clean deploy" to repository defined in parameters.
+     *
+     * @param basedir Directory to build a project from.
+     * @param repositoryUrl URL of the target repository
+     */
+    public static void buildAndDeployMavenProjectToRepository(String basedir, URL repositoryUrl) {
+        buildMavenProject(basedir, "deploy", repositoryUrl);
     }
 
     /**
@@ -58,11 +68,13 @@ public class MavenDeployer {
      *
      * @param basedir Directory to build a project from.
      * @param buildCommand Build command, for example "install" or "deploy".
+     * @param repositoryUrl URL of the target repository or null if repository not specified
      */
-    private static void buildMavenProject(String basedir, String buildCommand) {
+    private static void buildMavenProject(String basedir, String buildCommand, URL repositoryUrl) {
         try {
             MavenUtil mavenUtil = MavenUtil.forProject(Paths.get(basedir)).forkJvm();
             addSettingsXmlPathIfExists(mavenUtil);
+            addTargetRepositoryIfExists(mavenUtil, repositoryUrl);
             mavenUtil.executeGoals(buildCommand);
 
             logger.debug("Maven project successfully built and deployed!");
@@ -84,6 +96,18 @@ public class MavenDeployer {
             } else {
                 throw new RuntimeException("Path to settings.xml file with value " + SETTINGS_XML_PATH + " points to non existing location.");
             }
+        }
+    }
+
+    /**
+     * Add target repository to install the artifact to.
+     *
+     * @param mavenUtil
+     * @param repositoryUrl
+     */
+    private static void addTargetRepositoryIfExists(MavenUtil mavenUtil, URL repositoryUrl) {
+        if (repositoryUrl != null) {
+            mavenUtil.deployToRepository("remote-testing-repo", repositoryUrl.toExternalForm());
         }
     }
 }

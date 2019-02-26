@@ -37,7 +37,7 @@ import org.kie.cloud.openshift.template.OpenShiftTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WorkbenchKieServerScenarioImpl extends OpenShiftScenario implements WorkbenchKieServerScenario {
+public class WorkbenchKieServerScenarioImpl extends OpenShiftScenario<WorkbenchKieServerScenario> implements WorkbenchKieServerScenario {
 
     private WorkbenchDeploymentImpl workbenchDeployment;
     private KieServerDeploymentImpl kieServerDeployment;

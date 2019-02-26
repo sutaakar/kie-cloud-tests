@@ -40,7 +40,7 @@ import org.kie.cloud.openshift.util.SsoDeployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClusteredWorkbenchKieServerPersistentScenarioImpl extends OpenShiftScenario implements ClusteredWorkbenchKieServerPersistentScenario {
+public class ClusteredWorkbenchKieServerPersistentScenarioImpl extends OpenShiftScenario<ClusteredWorkbenchKieServerPersistentScenario> implements ClusteredWorkbenchKieServerPersistentScenario {
 
     private WorkbenchDeploymentImpl workbenchDeployment;
     private KieServerDeploymentImpl kieServerDeployment;

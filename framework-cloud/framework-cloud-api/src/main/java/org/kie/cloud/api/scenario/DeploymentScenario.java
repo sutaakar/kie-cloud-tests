@@ -15,11 +15,14 @@
 package org.kie.cloud.api.scenario;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.kie.cloud.api.deployment.Deployment;
 import org.kie.cloud.api.deployment.DeploymentTimeoutException;
+import org.kie.cloud.api.deployment.NexusDeployment;
 
-public interface DeploymentScenario {
+public interface DeploymentScenario<T extends DeploymentScenario<T>> {
     /**
      * Return deployment scenario namespace.
      *
@@ -61,4 +64,22 @@ public interface DeploymentScenario {
      * @return All available deployments.
      */
     List<Deployment> getDeployments();
+
+    /**
+     * Deploy internal Nexus Maven repo as part of this scenario.
+     */
+    void deployNexus();
+
+    /**
+     * @param preDeploymentListener
+     */
+    void addPreDeploymentListener(Consumer<T> preDeploymentListener);
+
+    /**
+     * Return Nexus deployment.
+     *
+     * @return NexusDeployment
+     * @see NexusDeployment
+     */
+    Optional<NexusDeployment> getNexusDeployment();
 }

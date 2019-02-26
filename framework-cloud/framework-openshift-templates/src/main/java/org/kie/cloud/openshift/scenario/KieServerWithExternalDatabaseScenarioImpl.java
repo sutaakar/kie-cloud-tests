@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
 import cz.xtf.openshift.OpenShiftBinaryClient;
 import cz.xtf.wait.SimpleWaiter;
 
-public class KieServerWithExternalDatabaseScenarioImpl extends OpenShiftScenario implements KieServerWithExternalDatabaseScenario {
+public class KieServerWithExternalDatabaseScenarioImpl extends OpenShiftScenario<KieServerWithExternalDatabaseScenario> implements KieServerWithExternalDatabaseScenario {
 
     private KieServerDeploymentImpl kieServerDeployment;
     private DockerDeployment dockerDeployment;

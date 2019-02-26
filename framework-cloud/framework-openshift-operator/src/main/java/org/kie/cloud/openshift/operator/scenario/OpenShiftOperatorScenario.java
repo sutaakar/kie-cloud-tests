@@ -25,6 +25,7 @@ import cz.xtf.openshift.OpenShiftUtils;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.openshift.api.model.ImageStream;
+import org.kie.cloud.api.scenario.DeploymentScenario;
 import org.kie.cloud.openshift.constants.OpenShiftConstants;
 import org.kie.cloud.openshift.operator.resources.OpenShiftResource;
 import org.kie.cloud.openshift.resource.Project;
@@ -32,7 +33,7 @@ import org.kie.cloud.openshift.scenario.OpenShiftScenario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class OpenShiftOperatorScenario extends OpenShiftScenario {
+public abstract class OpenShiftOperatorScenario<T extends DeploymentScenario<T>> extends OpenShiftScenario<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(OpenShiftOperatorScenario.class);
 

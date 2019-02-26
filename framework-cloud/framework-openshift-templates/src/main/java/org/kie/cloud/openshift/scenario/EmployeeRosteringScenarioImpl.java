@@ -30,7 +30,7 @@ import org.kie.cloud.openshift.template.OpenShiftTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EmployeeRosteringScenarioImpl extends OpenShiftScenario implements EmployeeRosteringScenario {
+public class EmployeeRosteringScenarioImpl extends OpenShiftScenario<EmployeeRosteringScenario> implements EmployeeRosteringScenario {
 
     private static final String OPTAWEB_HTTPS_SECRET = "OPTAWEB_HTTPS_SECRET";
 
