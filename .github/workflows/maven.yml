@@ -17,4 +17,4 @@ jobs:
       uses: manusa/actions-setup-openshift@v1.0.1 
       with:
         # Version of OKD OpenShift to deploy
-        oc version: 4.1
+        oc version: v3.11.0
