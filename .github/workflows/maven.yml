@@ -13,5 +13,8 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Build with Maven
-      run: mvn -B clean install --file pom.xml
+    - name: Setup OKD OpenShift Cluster
+      uses: manusa/actions-setup-openshift@v1.0.1 
+      with:
+        # Version of OKD OpenShift to deploy
+        oc version: 4.1
