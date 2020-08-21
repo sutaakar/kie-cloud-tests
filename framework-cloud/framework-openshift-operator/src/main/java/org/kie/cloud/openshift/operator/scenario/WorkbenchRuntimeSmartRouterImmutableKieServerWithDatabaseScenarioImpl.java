@@ -101,7 +101,13 @@ public class WorkbenchRuntimeSmartRouterImmutableKieServerWithDatabaseScenarioIm
         // deploy application
         getKieAppClient().create(kieApp);
         // Wait until the operator reconciliate the KieApp and add there missing informations
-        new SupplierWaiter<KieApp>(() -> getKieAppClient().withName(OpenShiftConstants.getKieApplicationName()).get(), kieApp -> kieApp.getStatus() != null).reason("Waiting for reconciliation to initialize all fields.").timeout(TimeUnit.MINUTES,1).waitFor();
+        //new SupplierWaiter<KieApp>(() -> getKieAppClient().withName(OpenShiftConstants.getKieApplicationName()).get(), kieApp -> kieApp.getStatus() != null).reason("Waiting for reconciliation to initialize all fields.").timeout(TimeUnit.MINUTES,1).waitFor();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
 
         workbenchRuntimeDeployment = new WorkbenchRuntimeOperatorDeployment(project, getKieAppClient());
         workbenchRuntimeDeployment.setUsername(DeploymentConstants.getAppUser());
